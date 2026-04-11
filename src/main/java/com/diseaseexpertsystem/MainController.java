@@ -1,8 +1,10 @@
 package com.diseaseexpertsystem;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import com.diseaseexpertsystem.knowledge.KnowledgeBase;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -17,7 +19,8 @@ public class MainController {
   @FXML
   private TextArea resultDisplay;
 
-  private Map<String, CheckBox> checkBoxMap = new HashMap<>();
+  private KnowledgeBase diseaseKnowledgeBase = new KnowledgeBase();
+  private Map<String, CheckBox> checkBoxesMap = new HashMap<>();
 
   /* lifecycle handler */
 
@@ -27,17 +30,12 @@ public class MainController {
   }
 
   private void renderCheckBoxes() {
-    List<String> semuaGejala = List.of(
-        "Diare",
-        "Nyeri Otot",
-        "Lelah",
-        "Sakit Tenggorokan",
-        "Hilang Indra Penciuman");
+    Set<String> symptoms = diseaseKnowledgeBase.getUniqueLeaf();
 
-    for (String gejala : semuaGejala) {
-      CheckBox cb = new CheckBox(gejala);
+    for (String symptom : symptoms) {
+      CheckBox cb = new CheckBox(symptom);
 
-      checkBoxMap.put(gejala, cb);
+      checkBoxesMap.put(symptom, cb);
       symptomContainer.getChildren().add(cb);
     }
   }
@@ -49,7 +47,7 @@ public class MainController {
     StringBuilder sb = new StringBuilder();
     sb.append("Gejala yang dipilih:\n");
 
-    for (Map.Entry<String, CheckBox> entry : checkBoxMap.entrySet()) {
+    for (Map.Entry<String, CheckBox> entry : checkBoxesMap.entrySet()) {
       if (entry.getValue().isSelected()) {
         sb.append("- ").append(entry.getKey()).append("\n");
       }
@@ -60,7 +58,7 @@ public class MainController {
 
   @FXML
   void resetSymptom(ActionEvent event) {
-    for (CheckBox cb : checkBoxMap.values()) {
+    for (CheckBox cb : checkBoxesMap.values()) {
       cb.setSelected(false);
     }
 
