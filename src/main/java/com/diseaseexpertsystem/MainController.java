@@ -10,6 +10,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
 public class MainController {
@@ -18,6 +19,11 @@ public class MainController {
 
   @FXML
   private TextArea resultDisplay;
+
+  @FXML
+  private TextField threshold;
+
+  /* custom variable */
 
   private KnowledgeBase diseaseKnowledgeBase = new KnowledgeBase();
   private Map<String, CheckBox> checkBoxesMap = new HashMap<>();
@@ -44,6 +50,15 @@ public class MainController {
 
   @FXML
   void diagnoseDisease(ActionEvent event) {
+    if (!validateThreshold()) {
+      return;
+    }
+
+    if (checkBoxesMap.values().stream().noneMatch(CheckBox::isSelected)) {
+      resultDisplay.setText("Pilih minimal satu gejala.");
+      return;
+    }
+
     StringBuilder sb = new StringBuilder();
     sb.append("Gejala yang dipilih:\n");
 
@@ -63,5 +78,25 @@ public class MainController {
     }
 
     resultDisplay.clear();
+  }
+
+  /* custom method */
+
+  private boolean validateThreshold() {
+    String input = threshold.getText();
+
+    if (input.isEmpty()) {
+      resultDisplay.setText("Threshold tidak boleh kosong.");
+      return false;
+    }
+
+    double value = Double.parseDouble(input);
+
+    if (value < 0 || value > 100) {
+      resultDisplay.setText("Threshold harus antara 0 dan 100.");
+      return false;
+    }
+
+    return true;
   }
 }
