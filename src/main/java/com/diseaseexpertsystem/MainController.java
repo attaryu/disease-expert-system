@@ -67,6 +67,7 @@ public class MainController {
 
       symptomContainer.getChildren().clear();
       checkBoxesMap.clear();
+      resultDisplay.clear();
 
       renderCheckBoxes();
     });
