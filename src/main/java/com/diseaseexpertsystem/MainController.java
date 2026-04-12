@@ -1,8 +1,10 @@
 package com.diseaseexpertsystem;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.diseaseexpertsystem.engine.DiagnosisResult;
 import com.diseaseexpertsystem.engine.InferenceEngine;
 import com.diseaseexpertsystem.knowledge.DiseaseKnowledgeBaseAbstract;
 import com.diseaseexpertsystem.knowledge.knowledges.GastroenteritisKnowledgeBase;
@@ -92,6 +94,42 @@ public class MainController {
       resultDisplay.setText("Pilih minimal satu gejala.");
       return;
     }
+
+    Map<String, Boolean> userAnswers = new HashMap<>();
+
+    for (Map.Entry<String, CheckBox> entry : checkBoxesMap.entrySet()) {
+      userAnswers.put(entry.getKey(), entry.getValue().isSelected());
+    }
+
+    List<DiagnosisResult> results = engine.getResultsAtLevel("Root", userAnswers);
+
+    StringBuilder aboveThreshold = new StringBuilder(String.format("Memenuhi Threshold\n"));
+    StringBuilder belowThreshold = new StringBuilder(String.format("\nDi Bawah Threshold\n"));
+
+    boolean hasAbove = false;
+    boolean hasBelow = false;
+    double thresholdValue = Double.parseDouble(threshold.getText());
+
+    for (DiagnosisResult res : results) {
+      String formattedResult = String.format("- %s: %.2f%%\n", res.name, res.percentage);
+
+      if (res.percentage >= thresholdValue) {
+        aboveThreshold.append(formattedResult);
+        hasAbove = true;
+      } else {
+        belowThreshold.append(formattedResult);
+        hasBelow = true;
+      }
+    }
+
+    if (!hasAbove)
+      aboveThreshold.append("- Tidak ada\n");
+    if (!hasBelow)
+      belowThreshold.append("- Tidak ada\n");
+
+    resultDisplay
+        .setText(String.format("Threshold: %.2f%%\n\n", thresholdValue).toString() + aboveThreshold.toString()
+            + belowThreshold.toString());
   }
 
   @FXML
@@ -113,13 +151,16 @@ public class MainController {
       return false;
     }
 
-    double value = Double.parseDouble(input);
-
-    if (value < 0 || value > 100) {
-      resultDisplay.setText("Threshold harus antara 0 dan 100.");
+    try {
+      double value = Double.parseDouble(input);
+      if (value < 0 || value > 100) {
+        resultDisplay.setText("Threshold harus antara 0 dan 100.");
+        return false;
+      }
+      return true;
+    } catch (NumberFormatException e) {
+      resultDisplay.setText("Threshold harus berupa angka.");
       return false;
     }
-
-    return true;
   }
 }

@@ -43,7 +43,7 @@ public class GastroenteritisKnowledgeBase extends DiseaseKnowledgeBaseAbstract {
     masterSymptoms.put("G019", "Apakah anda meminum susu?");
 
     /* level 1 */
-    knowledgeGraph.put("Gastroenteritis", List.of(
+    knowledgeGraph.put("Root", List.of(
         new Evidence("Keracunan Staphylococcus aureus", 1),
         new Evidence("Keracunan jamur beracun", 1),
         new Evidence("Keracunan Salmonellae", 1),
