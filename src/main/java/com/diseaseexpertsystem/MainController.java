@@ -3,20 +3,26 @@ package com.diseaseexpertsystem;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.diseaseexpertsystem.engine.DiagnosisResult;
 import com.diseaseexpertsystem.engine.InferenceEngine;
-import com.diseaseexpertsystem.knowledge.KnowledgeBase;
+import com.diseaseexpertsystem.knowledge.DiseaseKnowledgeBaseAbstract;
+import com.diseaseexpertsystem.knowledge.knowledges.GastroenteritisKnowledgeBase;
+import com.diseaseexpertsystem.knowledge.knowledges.InfectionKnowledgeBase;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.VBox;
 
 public class MainController {
+  @FXML
+  private ToggleGroup diseaseGroup;
+
   @FXML
   private VBox symptomContainer;
 
@@ -28,8 +34,9 @@ public class MainController {
 
   /* custom variable */
 
-  private KnowledgeBase diseaseKnowledgeBase = new KnowledgeBase();
-  private InferenceEngine engine = new InferenceEngine(diseaseKnowledgeBase);
+  private DiseaseKnowledgeBaseAbstract infectionKnowledgeBase = new InfectionKnowledgeBase();
+  private DiseaseKnowledgeBaseAbstract gastroenteritisKnowledgeBase = new GastroenteritisKnowledgeBase();
+  private InferenceEngine engine = new InferenceEngine(infectionKnowledgeBase);
   private Map<String, CheckBox> checkBoxesMap = new HashMap<>();
 
   /* lifecycle handler */
@@ -37,14 +44,39 @@ public class MainController {
   @FXML
   private void initialize() {
     renderCheckBoxes();
+    listenDiseaseToogleGroup();
     threshold.setText("0");
   }
 
-  private void renderCheckBoxes() {
-    Set<String> symptoms = diseaseKnowledgeBase.getUniqueLeaf();
+  private void listenDiseaseToogleGroup() {
+    diseaseGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+      if (newToggle == null) {
+        symptomContainer.getChildren().clear();
+        checkBoxesMap.clear();
 
-    for (String symptom : symptoms) {
-      CheckBox cb = new CheckBox(symptom);
+        return;
+      }
+
+      String selectedDisease = ((RadioButton) newToggle).getText();
+
+      if (selectedDisease.equals("Infeksi/Non-infeksi")) {
+        engine.setKnowledgeBase(infectionKnowledgeBase);
+      } else if (selectedDisease.equals("Gastrousus")) {
+        engine.setKnowledgeBase(gastroenteritisKnowledgeBase);
+      }
+
+      symptomContainer.getChildren().clear();
+      checkBoxesMap.clear();
+
+      renderCheckBoxes();
+    });
+  }
+
+  private void renderCheckBoxes() {
+    Map<String, String> symptoms = engine.getKnowledgeBase().getSymptoms();
+
+    for (String symptom : symptoms.keySet()) {
+      CheckBox cb = new CheckBox(symptoms.get(symptom));
 
       checkBoxesMap.put(symptom, cb);
       symptomContainer.getChildren().add(cb);
@@ -64,39 +96,40 @@ public class MainController {
     }
 
     Map<String, Boolean> userAnswers = new HashMap<>();
-    checkBoxesMap.forEach((name, cb) -> userAnswers.put(name, cb.isSelected()));
 
-    // get the list of categories under Root
-    List<DiagnosisResult> categories = engine.getResultsAtLevel("Root", userAnswers);
-    DiagnosisResult topCategory = categories.get(0);
+    for (Map.Entry<String, CheckBox> entry : checkBoxesMap.entrySet()) {
+      userAnswers.put(entry.getKey(), entry.getValue().isSelected());
+    }
 
-    // get the list of diseases under the top category
-    List<DiagnosisResult> diseases = engine.getResultsAtLevel(topCategory.name, userAnswers);
+    List<DiagnosisResult> results = engine.getResultsAtLevel("Root", userAnswers);
 
-    // build the result string
-    StringBuilder sb = new StringBuilder();
+    StringBuilder aboveThreshold = new StringBuilder(String.format("Memenuhi Threshold\n"));
+    StringBuilder belowThreshold = new StringBuilder(String.format("\nDi Bawah Threshold\n"));
 
-    sb.append("Diagnosis Kategori Penyakit:\n");
-    sb.append(topCategory.name).append("\n\n");
-    sb.append("Diagnosis Penyakit:\n");
+    boolean hasAbove = false;
+    boolean hasBelow = false;
+    double thresholdValue = Double.parseDouble(threshold.getText());
 
-    double thresholdVal = Double.parseDouble(threshold.getText());
-    int rank = 1;
-    boolean found = false;
+    for (DiagnosisResult res : results) {
+      String formattedResult = String.format("- %s: %.2f%%\n", res.name, res.percentage);
 
-    for (DiagnosisResult d : diseases) {
-      if (d.percentage >= thresholdVal) {
-        sb.append(rank++).append(". ").append(d.name)
-            .append(" (").append(String.format("%.1f", d.percentage)).append("%)\n");
-        found = true;
+      if (res.percentage >= thresholdValue) {
+        aboveThreshold.append(formattedResult);
+        hasAbove = true;
+      } else {
+        belowThreshold.append(formattedResult);
+        hasBelow = true;
       }
     }
 
-    if (!found)
-      sb.append("Tidak ada penyakit yang melewati threshold.\n");
+    if (!hasAbove)
+      aboveThreshold.append("- Tidak ada\n");
+    if (!hasBelow)
+      belowThreshold.append("- Tidak ada\n");
 
-    sb.append("\nThreshold: ").append(thresholdVal).append("%");
-    resultDisplay.setText(sb.toString());
+    resultDisplay
+        .setText(String.format("Threshold: %.2f%%\n\n", thresholdValue).toString() + aboveThreshold.toString()
+            + belowThreshold.toString());
   }
 
   @FXML
@@ -118,13 +151,16 @@ public class MainController {
       return false;
     }
 
-    double value = Double.parseDouble(input);
-
-    if (value < 0 || value > 100) {
-      resultDisplay.setText("Threshold harus antara 0 dan 100.");
+    try {
+      double value = Double.parseDouble(input);
+      if (value < 0 || value > 100) {
+        resultDisplay.setText("Threshold harus antara 0 dan 100.");
+        return false;
+      }
+      return true;
+    } catch (NumberFormatException e) {
+      resultDisplay.setText("Threshold harus berupa angka.");
       return false;
     }
-
-    return true;
   }
 }

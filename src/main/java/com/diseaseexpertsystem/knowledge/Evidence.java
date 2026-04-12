@@ -1,10 +1,10 @@
 package com.diseaseexpertsystem.knowledge;
 
 public class Evidence {
-  String name;
-  double weight;
+  private String name;
+  private double weight;
 
-  Evidence(String name, double weight) {
+  public Evidence(String name, double weight) {
     this.name = name;
     this.weight = weight;
   }
