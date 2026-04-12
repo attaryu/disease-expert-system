@@ -40,45 +40,44 @@ public class InfectionKnowledgeBase extends DiseaseKnowledgeBaseAbstract {
     masterSymptoms.put("G016", "Penglihatan Kabur (retina menyempit)");
     masterSymptoms.put("G017", "Mimisan (perdarahan hidung)");
 
-    // Level 1: Probabilitas Kunjungan Pasien (Prevalensi Umum)
+    // Level 1: Probabilitas Kunjungan Pasien (Total = 1.0)
     knowledgeGraph.put("Root", List.of(
         new Evidence("Penyakit Infeksi", 0.6),
         new Evidence("Penyakit Non-Infeksi", 0.4)));
 
-    // Level 2: Prevalensi Spesifik Penyakit
+    // Level 2: Prevalensi Spesifik Penyakit (Total = 1.0)
     knowledgeGraph.put("Penyakit Infeksi", List.of(
-        new Evidence("Influenza", 0.85),
-        new Evidence("Demam Berdarah", 0.15)));
+        new Evidence("Influenza", 0.7),
+        new Evidence("Demam Berdarah", 0.3)));
 
     knowledgeGraph.put("Penyakit Non-Infeksi", List.of(
-        new Evidence("Hipertensi", 0.7),
-        new Evidence("Diabetes", 0.3)));
+        new Evidence("Hipertensi", 0.6),
+        new Evidence("Diabetes", 0.4)));
 
     // Level 3: Nilai Diagnostik/Prediktif Gejala (Total bobot per penyakit = 1.0)
-
     knowledgeGraph.put("Influenza", List.of(
-        new Evidence("G001", 0.4),
-        new Evidence("G002", 0.3),
-        new Evidence("G003", 0.15),
-        new Evidence("G004", 0.15)));
+        new Evidence("G001", 0.4), // Pilek dominan
+        new Evidence("G002", 0.3), // Batuk
+        new Evidence("G004", 0.2), // Demam
+        new Evidence("G003", 0.1))); // Sakit tenggorokan
 
     knowledgeGraph.put("Demam Berdarah", List.of(
-        new Evidence("G005", 0.45),
-        new Evidence("G006", 0.25),
-        new Evidence("G007", 0.2),
-        new Evidence("G008", 0.1)));
+        new Evidence("G005", 0.5), // Demam pola pelana sangat khas DB
+        new Evidence("G007", 0.3), // Ruam kulit/Torniket
+        new Evidence("G006", 0.15), // Nyeri sendi
+        new Evidence("G008", 0.05))); // Mual (gejala umum)
 
     knowledgeGraph.put("Diabetes", List.of(
-        new Evidence("G009", 0.35),
-        new Evidence("G010", 0.3),
-        new Evidence("G011", 0.2),
-        new Evidence("G012", 0.15)));
+        new Evidence("G009", 0.4), // Poliuria utama
+        new Evidence("G010", 0.4), // Polidipsia utama
+        new Evidence("G012", 0.15), // Luka sulit sembuh
+        new Evidence("G011", 0.05))); // Lelah
 
     knowledgeGraph.put("Hipertensi", List.of(
-        new Evidence("G013", 0.6),
-        new Evidence("G014", 0.25),
-        new Evidence("G015", 0.1),
-        new Evidence("G016", 0.03),
-        new Evidence("G017", 0.02)));
+        new Evidence("G013", 0.7), // Tekanan darah tinggi adalah kunci mutlak
+        new Evidence("G014", 0.15), // Sakit kepala tengkuk
+        new Evidence("G015", 0.1), // Pusing
+        new Evidence("G016", 0.03), // Penglihatan kabur
+        new Evidence("G017", 0.02))); // Mimisan
   }
 }
