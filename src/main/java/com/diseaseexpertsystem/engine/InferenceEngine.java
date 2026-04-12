@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.diseaseexpertsystem.knowledge.DiseaseKnowledgeBaseAbstract;
 import com.diseaseexpertsystem.knowledge.Evidence;
-import com.diseaseexpertsystem.knowledge.KnowledgeBase;
 
 public class InferenceEngine {
-  private KnowledgeBase kb;
+  private DiseaseKnowledgeBaseAbstract kb;
 
-  public InferenceEngine(KnowledgeBase kb) {
+  public InferenceEngine(DiseaseKnowledgeBaseAbstract kb) {
     this.kb = kb;
   }
 

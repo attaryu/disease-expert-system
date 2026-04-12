@@ -6,7 +6,8 @@ import java.util.Map;
 
 import com.diseaseexpertsystem.engine.DiagnosisResult;
 import com.diseaseexpertsystem.engine.InferenceEngine;
-import com.diseaseexpertsystem.knowledge.KnowledgeBase;
+import com.diseaseexpertsystem.knowledge.DiseaseKnowledgeBaseAbstract;
+import com.diseaseexpertsystem.knowledge.knowledges.InfectionKnowledgeBase;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -27,8 +28,8 @@ public class MainController {
 
   /* custom variable */
 
-  private KnowledgeBase diseaseKnowledgeBase = new KnowledgeBase();
-  private InferenceEngine engine = new InferenceEngine(diseaseKnowledgeBase);
+  private DiseaseKnowledgeBaseAbstract infectionKnowledgeBase = new InfectionKnowledgeBase();
+  private InferenceEngine engine = new InferenceEngine(infectionKnowledgeBase);
   private Map<String, CheckBox> checkBoxesMap = new HashMap<>();
 
   /* lifecycle handler */
@@ -40,7 +41,7 @@ public class MainController {
   }
 
   private void renderCheckBoxes() {
-    Map<String, String> symptoms = diseaseKnowledgeBase.getSymptoms();
+    Map<String, String> symptoms = infectionKnowledgeBase.getSymptoms();
 
     for (String symptom : symptoms.keySet()) {
       CheckBox cb = new CheckBox(symptoms.get(symptom));

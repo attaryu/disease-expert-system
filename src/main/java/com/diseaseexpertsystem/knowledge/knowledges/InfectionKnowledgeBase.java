@@ -1,26 +1,27 @@
-package com.diseaseexpertsystem.knowledge;
+package com.diseaseexpertsystem.knowledge.knowledges;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class KnowledgeBase {
-  private Map<String, String> masterSymptoms = new LinkedHashMap<>();
-  private Map<String, List<Evidence>> knowledgeGraph = new LinkedHashMap<>();
+import com.diseaseexpertsystem.knowledge.DiseaseKnowledgeBaseAbstract;
+import com.diseaseexpertsystem.knowledge.Evidence;
 
-  public KnowledgeBase() {
-    initInfectionKnowledgeBase();
+public class InfectionKnowledgeBase extends DiseaseKnowledgeBaseAbstract {
+  public InfectionKnowledgeBase() {
+    initKnowledgeBase();
   }
 
+  @Override
   public Map<String, List<Evidence>> getKnowledge() {
     return knowledgeGraph;
   }
 
+  @Override
   public Map<String, String> getSymptoms() {
     return masterSymptoms;
   }
 
-  private void initInfectionKnowledgeBase() {
+  private void initKnowledgeBase() {
     masterSymptoms.put("G001", "Pilek (hidung tersumbat, bersin berulang)");
     masterSymptoms.put("G002", "Batuk (kering/berdahak ringan, >3x/jam)");
     masterSymptoms.put("G003", "Sakit Tenggorokan (nyeri menelan, faring merah)");
