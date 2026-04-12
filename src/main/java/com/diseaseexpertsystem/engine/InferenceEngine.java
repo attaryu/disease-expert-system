@@ -14,6 +14,14 @@ public class InferenceEngine {
     this.kb = kb;
   }
 
+  public void setKnowledgeBase(DiseaseKnowledgeBaseAbstract kb) {
+    this.kb = kb;
+  }
+
+  public DiseaseKnowledgeBaseAbstract getKnowledgeBase() {
+    return kb;
+  }
+
   public double calculateNode(String nodeName, Map<String, Boolean> userAnswers) {
     Map<String, List<Evidence>> graph = kb.getKnowledge();
 

@@ -1,22 +1,26 @@
 package com.diseaseexpertsystem;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import com.diseaseexpertsystem.engine.DiagnosisResult;
 import com.diseaseexpertsystem.engine.InferenceEngine;
 import com.diseaseexpertsystem.knowledge.DiseaseKnowledgeBaseAbstract;
+import com.diseaseexpertsystem.knowledge.knowledges.GastroenteritisKnowledgeBase;
 import com.diseaseexpertsystem.knowledge.knowledges.InfectionKnowledgeBase;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.VBox;
 
 public class MainController {
+  @FXML
+  private ToggleGroup diseaseGroup;
+
   @FXML
   private VBox symptomContainer;
 
@@ -29,6 +33,7 @@ public class MainController {
   /* custom variable */
 
   private DiseaseKnowledgeBaseAbstract infectionKnowledgeBase = new InfectionKnowledgeBase();
+  private DiseaseKnowledgeBaseAbstract gastroenteritisKnowledgeBase = new GastroenteritisKnowledgeBase();
   private InferenceEngine engine = new InferenceEngine(infectionKnowledgeBase);
   private Map<String, CheckBox> checkBoxesMap = new HashMap<>();
 
@@ -37,11 +42,36 @@ public class MainController {
   @FXML
   private void initialize() {
     renderCheckBoxes();
+    listenDiseaseToogleGroup();
     threshold.setText("0");
   }
 
+  private void listenDiseaseToogleGroup() {
+    diseaseGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+      if (newToggle == null) {
+        symptomContainer.getChildren().clear();
+        checkBoxesMap.clear();
+
+        return;
+      }
+
+      String selectedDisease = ((RadioButton) newToggle).getText();
+
+      if (selectedDisease.equals("Infeksi/Non-infeksi")) {
+        engine.setKnowledgeBase(infectionKnowledgeBase);
+      } else if (selectedDisease.equals("Gastrousus")) {
+        engine.setKnowledgeBase(gastroenteritisKnowledgeBase);
+      }
+
+      symptomContainer.getChildren().clear();
+      checkBoxesMap.clear();
+
+      renderCheckBoxes();
+    });
+  }
+
   private void renderCheckBoxes() {
-    Map<String, String> symptoms = infectionKnowledgeBase.getSymptoms();
+    Map<String, String> symptoms = engine.getKnowledgeBase().getSymptoms();
 
     for (String symptom : symptoms.keySet()) {
       CheckBox cb = new CheckBox(symptoms.get(symptom));
@@ -62,41 +92,6 @@ public class MainController {
       resultDisplay.setText("Pilih minimal satu gejala.");
       return;
     }
-
-    Map<String, Boolean> userAnswers = new HashMap<>();
-    checkBoxesMap.forEach((name, cb) -> userAnswers.put(name, cb.isSelected()));
-
-    // get the list of categories under Root
-    List<DiagnosisResult> categories = engine.getResultsAtLevel("Root", userAnswers);
-    DiagnosisResult topCategory = categories.get(0);
-
-    // get the list of diseases under the top category
-    List<DiagnosisResult> diseases = engine.getResultsAtLevel(topCategory.name, userAnswers);
-
-    // build the result string
-    StringBuilder sb = new StringBuilder();
-
-    sb.append("Diagnosis Kategori Penyakit:\n");
-    sb.append(topCategory.name).append("\n\n");
-    sb.append("Diagnosis Penyakit:\n");
-
-    double thresholdVal = Double.parseDouble(threshold.getText());
-    int rank = 1;
-    boolean found = false;
-
-    for (DiagnosisResult d : diseases) {
-      if (d.percentage >= thresholdVal) {
-        sb.append(rank++).append(". ").append(d.name)
-            .append(" (").append(String.format("%.1f", d.percentage)).append("%)\n");
-        found = true;
-      }
-    }
-
-    if (!found)
-      sb.append("Tidak ada penyakit yang melewati threshold.\n");
-
-    sb.append("\nThreshold: ").append(thresholdVal).append("%");
-    resultDisplay.setText(sb.toString());
   }
 
   @FXML
