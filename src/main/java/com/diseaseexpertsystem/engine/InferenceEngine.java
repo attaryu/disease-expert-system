@@ -15,7 +15,7 @@ public class InferenceEngine {
   }
 
   public double calculateNode(String nodeName, Map<String, Boolean> userAnswers) {
-    Map<String, List<Evidence>> graph = kb.getGraph();
+    Map<String, List<Evidence>> graph = kb.getKnowledge();
 
     // Base Case: Jika node adalah LEAF (Gejala Fisik)
     if (!graph.containsKey(nodeName)) {
@@ -36,7 +36,7 @@ public class InferenceEngine {
 
   public List<DiagnosisResult> getResultsAtLevel(String parentName, Map<String, Boolean> userAnswers) {
     List<DiagnosisResult> results = new ArrayList<>();
-    List<Evidence> children = kb.getGraph().get(parentName);
+    List<Evidence> children = kb.getKnowledge().get(parentName);
 
     if (children != null) {
       for (Evidence child : children) {

@@ -3,7 +3,6 @@ package com.diseaseexpertsystem;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.diseaseexpertsystem.engine.DiagnosisResult;
 import com.diseaseexpertsystem.engine.InferenceEngine;
@@ -41,10 +40,10 @@ public class MainController {
   }
 
   private void renderCheckBoxes() {
-    Set<String> symptoms = diseaseKnowledgeBase.getUniqueLeaf();
+    Map<String, String> symptoms = diseaseKnowledgeBase.getSymptoms();
 
-    for (String symptom : symptoms) {
-      CheckBox cb = new CheckBox(symptom);
+    for (String symptom : symptoms.keySet()) {
+      CheckBox cb = new CheckBox(symptoms.get(symptom));
 
       checkBoxesMap.put(symptom, cb);
       symptomContainer.getChildren().add(cb);
