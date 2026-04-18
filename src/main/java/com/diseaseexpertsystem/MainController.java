@@ -5,13 +5,16 @@ import java.util.List;
 import java.util.Map;
 
 import com.diseaseexpertsystem.engine.DiagnosisResult;
-import com.diseaseexpertsystem.engine.InferenceEngine;
+import com.diseaseexpertsystem.engine.InferenceEngineInterface;
+import com.diseaseexpertsystem.engine.RuleBasedInferenceEngine;
+import com.diseaseexpertsystem.engine.WeightedInferenceEngine;
 import com.diseaseexpertsystem.knowledge.DiseaseKnowledgeBaseAbstract;
 import com.diseaseexpertsystem.knowledge.knowledges.GastroenteritisKnowledgeBase;
 import com.diseaseexpertsystem.knowledge.knowledges.InfectionKnowledgeBase;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextArea;
@@ -35,56 +38,28 @@ public class MainController {
   @FXML
   private TextField threshold;
 
+  @FXML
+  private Label thresholdLabel;
+
+  @FXML
+  private Label thresholdPercentage;
+
   /* custom variable */
 
-  private DiseaseKnowledgeBaseAbstract infectionKnowledgeBase = new InfectionKnowledgeBase();
-  private DiseaseKnowledgeBaseAbstract gastroenteritisKnowledgeBase = new GastroenteritisKnowledgeBase();
-  private InferenceEngine engine = new InferenceEngine(infectionKnowledgeBase);
+  private DiseaseKnowledgeBaseAbstract knowledgeBase;
+  private InferenceEngineInterface engine;
   private Map<String, CheckBox> checkBoxesMap = new HashMap<>();
 
   /* lifecycle handler */
 
   @FXML
   private void initialize() {
+    knowledgeBase = new InfectionKnowledgeBase();
+    engine = new WeightedInferenceEngine(knowledgeBase);
+
     renderCheckBoxes();
-    listenDiseaseToogleGroup();
+    listenToogleGroup();
     threshold.setText("0");
-  }
-
-  private void listenDiseaseToogleGroup() {
-    diseaseGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
-      if (newToggle == null) {
-        symptomContainer.getChildren().clear();
-        checkBoxesMap.clear();
-
-        return;
-      }
-
-      String selectedDisease = ((RadioButton) newToggle).getText();
-
-      if (selectedDisease.equals("Infeksi/Non-infeksi")) {
-        engine.setKnowledgeBase(infectionKnowledgeBase);
-      } else if (selectedDisease.equals("Gastrousus")) {
-        engine.setKnowledgeBase(gastroenteritisKnowledgeBase);
-      }
-
-      symptomContainer.getChildren().clear();
-      checkBoxesMap.clear();
-      resultDisplay.clear();
-
-      renderCheckBoxes();
-    });
-  }
-
-  private void renderCheckBoxes() {
-    Map<String, String> symptoms = engine.getKnowledgeBase().getSymptoms();
-
-    for (String symptom : symptoms.keySet()) {
-      CheckBox cb = new CheckBox(symptoms.get(symptom));
-
-      checkBoxesMap.put(symptom, cb);
-      symptomContainer.getChildren().add(cb);
-    }
   }
 
   /* interaction handler */
@@ -100,40 +75,59 @@ public class MainController {
     }
 
     Map<String, Boolean> userAnswers = new HashMap<>();
-
     for (Map.Entry<String, CheckBox> entry : checkBoxesMap.entrySet()) {
       userAnswers.put(entry.getKey(), entry.getValue().isSelected());
     }
 
-    List<DiagnosisResult> results = engine.getResultsAtLevel("Root", userAnswers);
+    List<DiagnosisResult> results = engine.diagnose(userAnswers);
 
-    StringBuilder aboveThreshold = new StringBuilder(String.format("Memenuhi Threshold\n"));
+    RadioButton selectedMethodRb = (RadioButton) method.getSelectedToggle();
+    boolean isRuleBased = selectedMethodRb != null && selectedMethodRb.getText().equals("Rule-based");
+    String methodName = selectedMethodRb != null ? selectedMethodRb.getText() : "Unknown";
+
+    StringBuilder aboveThreshold = new StringBuilder(String.format("Metode: %s\n", methodName));
+
+    if (!isRuleBased) {
+      aboveThreshold.append("Memenuhi Threshold\n");
+    } else {
+      aboveThreshold.append("Kecocokan Gejala (Rules Matched):\n");
+    }
+
     StringBuilder belowThreshold = new StringBuilder(String.format("\nDi Bawah Threshold\n"));
 
     boolean hasAbove = false;
     boolean hasBelow = false;
-    double thresholdValue = Double.parseDouble(threshold.getText());
+
+    double thresholdValue = isRuleBased ? 0.0 : Double.parseDouble(threshold.getText());
 
     for (DiagnosisResult res : results) {
-      String formattedResult = String.format("- %s: %.2f%%\n", res.name, res.percentage);
-
-      if (res.percentage >= thresholdValue) {
-        aboveThreshold.append(formattedResult);
+      if (isRuleBased) {
+        aboveThreshold.append(String.format("- %s\n", res.name));
         hasAbove = true;
       } else {
-        belowThreshold.append(formattedResult);
-        hasBelow = true;
+        String formattedResult = String.format("- %s: %.2f%%\n", res.name, res.percentage);
+
+        if (res.percentage >= thresholdValue) {
+          aboveThreshold.append(formattedResult);
+          hasAbove = true;
+        } else {
+          belowThreshold.append(formattedResult);
+          hasBelow = true;
+        }
       }
     }
 
     if (!hasAbove)
       aboveThreshold.append("- Tidak ada\n");
-    if (!hasBelow)
+    if (!hasBelow && !isRuleBased)
       belowThreshold.append("- Tidak ada\n");
 
-    resultDisplay
-        .setText(String.format("Threshold: %.2f%%\n\n", thresholdValue).toString() + aboveThreshold.toString()
-            + belowThreshold.toString());
+    if (isRuleBased) {
+      resultDisplay.setText(aboveThreshold.toString());
+    } else {
+      resultDisplay.setText(String.format("Threshold: %.2f%%\n", thresholdValue) + aboveThreshold.toString()
+          + belowThreshold.toString());
+    }
   }
 
   @FXML
@@ -147,7 +141,78 @@ public class MainController {
 
   /* custom method */
 
+  private void listenToogleGroup() {
+    // Listener untuk pergantian Penyakit (Knowledge Base)
+    diseaseGroup.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+      if (newToggle == null) {
+        symptomContainer.getChildren().clear();
+        checkBoxesMap.clear();
+        return;
+      }
+
+      updateEngineStrategy();
+
+      symptomContainer.getChildren().clear();
+      checkBoxesMap.clear();
+      resultDisplay.clear();
+      renderCheckBoxes();
+    });
+
+    // Listener untuk pergantian Metode (Weighted vs Rule-based)
+    method.selectedToggleProperty().addListener((obs, oldToggle, newToggle) -> {
+      if (newToggle != null) {
+        updateEngineStrategy();
+      }
+    });
+  }
+
+  private void updateEngineStrategy() {
+    RadioButton selectedDiseaseRb = (RadioButton) diseaseGroup.getSelectedToggle();
+    RadioButton selectedMethodRb = (RadioButton) method.getSelectedToggle();
+
+    if (selectedDiseaseRb == null || selectedMethodRb == null)
+      return;
+
+    String selectedDisease = selectedDiseaseRb.getText();
+    String selectedMethod = selectedMethodRb.getText();
+
+    DiseaseKnowledgeBaseAbstract activeKb = selectedDisease.equals("Infeksi/Non-infeksi")
+        ? new InfectionKnowledgeBase()
+        : new GastroenteritisKnowledgeBase();
+
+    if (selectedMethod.equals("Weighted")) {
+      toggleThresholdUI(true);
+      engine = new WeightedInferenceEngine(activeKb);
+    } else {
+      toggleThresholdUI(false);
+      engine = new RuleBasedInferenceEngine(activeKb);
+    }
+  }
+
+  private void renderCheckBoxes() {
+    Map<String, String> symptoms = engine.getKnowledgeBase().getSymptoms();
+
+    for (String symptom : symptoms.keySet()) {
+      CheckBox cb = new CheckBox(symptoms.get(symptom));
+
+      checkBoxesMap.put(symptom, cb);
+      symptomContainer.getChildren().add(cb);
+    }
+  }
+
+  private void toggleThresholdUI(boolean isVisible) {
+    threshold.setVisible(isVisible);
+    thresholdLabel.setVisible(isVisible);
+    thresholdPercentage.setVisible(isVisible);
+  }
+
   private boolean validateThreshold() {
+    RadioButton selectedMethodRb = (RadioButton) method.getSelectedToggle();
+    boolean isRuleBased = selectedMethodRb != null && selectedMethodRb.getText().equals("Rule-based");
+
+    if (isRuleBased)
+      return true;
+
     String input = threshold.getText();
 
     if (input.isEmpty()) {

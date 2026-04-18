@@ -29,8 +29,8 @@
       <Button layoutX="670.0" layoutY="418.0" mnemonicParsing="false" onAction="#diagnoseDisease" prefHeight="39.0" prefWidth="141.0" text="Diagnosa" />
       <Button layoutX="519.0" layoutY="418.0" mnemonicParsing="false" onAction="#resetSymptom" prefHeight="39.0" prefWidth="141.0" text="Reset" />
       <TextField fx:id="threshold" layoutX="589.0" layoutY="368.0" prefHeight="25.0" prefWidth="205.0" />
-      <Label layoutX="518.0" layoutY="372.0" text="Threshold" />
-      <Label layoutX="799.0" layoutY="372.0" text="\%" />
+      <Label fx:id="thresholdLabel" layoutX="518.0" layoutY="372.0" text="Threshold" />
+      <Label fx:id="thresholdPercentage" layoutX="799.0" layoutY="372.0" text="\%" />
       <RadioButton layoutX="718.0" layoutY="296.0" mnemonicParsing="false" text="Gastrousus">
          <toggleGroup>
             <ToggleGroup fx:id="diseaseGroup" />
