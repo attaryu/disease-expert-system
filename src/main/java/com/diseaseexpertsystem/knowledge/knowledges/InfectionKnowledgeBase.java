@@ -50,21 +50,14 @@ public class InfectionKnowledgeBase extends DiseaseKnowledgeBaseAbstract {
   }
 
   private void initWeightedKnowledgeBase() {
-    // Level 1: Probabilitas Kunjungan Pasien (Total = 1.0)
+    // Level 1: Prevalensi Spesifik Penyakit
     knowledgeGraph.put("Root", List.of(
-        new Evidence("Penyakit Infeksi", 0.6),
-        new Evidence("Penyakit Non-Infeksi", 0.4)));
+        new Evidence("Influenza", 0.2),
+        new Evidence("Demam Berdarah", 0.2),
+        new Evidence("Hipertensi", 0.2),
+        new Evidence("Diabetes", 0.2)));
 
-    // Level 2: Prevalensi Spesifik Penyakit (Total = 1.0)
-    knowledgeGraph.put("Penyakit Infeksi", List.of(
-        new Evidence("Influenza", 0.7),
-        new Evidence("Demam Berdarah", 0.3)));
-
-    knowledgeGraph.put("Penyakit Non-Infeksi", List.of(
-        new Evidence("Hipertensi", 0.6),
-        new Evidence("Diabetes", 0.4)));
-
-    // Level 3: Nilai Diagnostik/Prediktif Gejala (Total bobot per penyakit = 1.0)
+    // Level 2: Nilai Diagnostik/Prediktif Gejala (Total bobot per penyakit = 1.0)
     knowledgeGraph.put("Influenza", List.of(
         new Evidence("G001", 0.4), // Pilek dominan
         new Evidence("G002", 0.3), // Batuk
