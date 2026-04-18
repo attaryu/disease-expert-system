@@ -5,10 +5,13 @@ import java.util.Map;
 
 import com.diseaseexpertsystem.knowledge.DiseaseKnowledgeBaseAbstract;
 import com.diseaseexpertsystem.knowledge.Evidence;
+import com.diseaseexpertsystem.knowledge.Rule;
 
 public class InfectionKnowledgeBase extends DiseaseKnowledgeBaseAbstract {
   public InfectionKnowledgeBase() {
-    initKnowledgeBase();
+    initMasterSymptoms();
+    initWeightedKnowledgeBase();
+    initRuleBasedKnowledgeBase();
   }
 
   @Override
@@ -21,7 +24,12 @@ public class InfectionKnowledgeBase extends DiseaseKnowledgeBaseAbstract {
     return masterSymptoms;
   }
 
-  private void initKnowledgeBase() {
+  @Override
+  public List<Rule> getRules() {
+    return rules;
+  }
+
+  private void initMasterSymptoms() {
     masterSymptoms.put("G001", "Pilek (hidung tersumbat, bersin berulang)");
     masterSymptoms.put("G002", "Batuk (kering/berdahak ringan, >3x/jam)");
     masterSymptoms.put("G003", "Sakit Tenggorokan (nyeri menelan, faring merah)");
@@ -39,7 +47,9 @@ public class InfectionKnowledgeBase extends DiseaseKnowledgeBaseAbstract {
     masterSymptoms.put("G015", "Pusing (terasa berputar/ringan saat ubah posisi)");
     masterSymptoms.put("G016", "Penglihatan Kabur (retina menyempit)");
     masterSymptoms.put("G017", "Mimisan (perdarahan hidung)");
+  }
 
+  private void initWeightedKnowledgeBase() {
     // Level 1: Probabilitas Kunjungan Pasien (Total = 1.0)
     knowledgeGraph.put("Root", List.of(
         new Evidence("Penyakit Infeksi", 0.6),
@@ -79,5 +89,12 @@ public class InfectionKnowledgeBase extends DiseaseKnowledgeBaseAbstract {
         new Evidence("G015", 0.1), // Pusing
         new Evidence("G016", 0.03), // Penglihatan kabur
         new Evidence("G017", 0.02))); // Mimisan
+  }
+
+  private void initRuleBasedKnowledgeBase() {
+    rules.add(new Rule("Influenza", List.of("G001", "G002", "G003", "G004")));
+    rules.add(new Rule("Demam Berdarah", List.of("G005", "G006", "G007", "G008")));
+    rules.add(new Rule("Diabetes", List.of("G009", "G010", "G011", "G012")));
+    rules.add(new Rule("Hipertensi", List.of("G013", "G014", "G015", "G016", "G017")));
   }
 }

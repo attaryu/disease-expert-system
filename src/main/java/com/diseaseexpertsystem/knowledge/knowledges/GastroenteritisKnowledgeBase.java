@@ -5,10 +5,13 @@ import java.util.Map;
 
 import com.diseaseexpertsystem.knowledge.DiseaseKnowledgeBaseAbstract;
 import com.diseaseexpertsystem.knowledge.Evidence;
+import com.diseaseexpertsystem.knowledge.Rule;
 
 public class GastroenteritisKnowledgeBase extends DiseaseKnowledgeBaseAbstract {
   public GastroenteritisKnowledgeBase() {
-    initKnowledgeBase();
+    initMasterSymptoms();
+    initWeightedKnowledgeBase();
+    initRuleBasedKnowledgeBase();
   }
 
   @Override
@@ -21,7 +24,12 @@ public class GastroenteritisKnowledgeBase extends DiseaseKnowledgeBaseAbstract {
     return masterSymptoms;
   }
 
-  private void initKnowledgeBase() {
+  @Override
+  public List<Rule> getRules() {
+    return rules;
+  }
+
+  private void initMasterSymptoms() {
     masterSymptoms.put("G001", "Apakah anda sering mengalami buang air besar (lebih dari 2 kali)?");
     masterSymptoms.put("G002", "Apakah anda mengalami berak encer?");
     masterSymptoms.put("G003", "Apakah anda mengalami berak berdarah?");
@@ -41,7 +49,9 @@ public class GastroenteritisKnowledgeBase extends DiseaseKnowledgeBaseAbstract {
     masterSymptoms.put("G017", "Apakah anda memakan makanan kaleng?");
     masterSymptoms.put("G018", "Apakah anda membeli susu?");
     masterSymptoms.put("G019", "Apakah anda meminum susu?");
+  }
 
+  private void initWeightedKnowledgeBase() {
     /* level 1 : Prevalensi Umum Gastroenteritis (Total = 1.0) */
     knowledgeGraph.put("Root", List.of(
         new Evidence("Keracunan Staphylococcus aureus", 0.3),
@@ -135,5 +145,22 @@ public class GastroenteritisKnowledgeBase extends DiseaseKnowledgeBaseAbstract {
     knowledgeGraph.put("Minum susu", List.of(
         new Evidence("G019", 0.7),
         new Evidence("G018", 0.3)));
+  }
+
+  private void initRuleBasedKnowledgeBase() {
+    rules.add(new Rule("Keracunan Staphylococcus aureus",
+        List.of("G014", "G015", "G001", "G002", "G005", "G006", "G004", "G007", "G008",
+            "G009")));
+
+    rules.add(new Rule("Keracunan jamur beracun",
+        List.of("G014", "G016", "G010", "G004", "G005", "G006", "G007")));
+
+    rules.add(new Rule("Keracunan Salmonellae",
+        List.of("G014", "G015", "G009", "G011", "G001", "G002", "G004", "G007", "G012")));
+    rules.add(new Rule("Keracunan Clostridium botulinum",
+        List.of("G014", "G017", "G004", "G013", "G005", "G006")));
+
+    rules.add(new Rule("Keracunan Campylobacte",
+        List.of("G018", "G019", "G001", "G002", "G003", "G009", "G011", "G004", "G007")));
   }
 }
