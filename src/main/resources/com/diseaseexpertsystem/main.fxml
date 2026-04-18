@@ -25,17 +25,24 @@
       </ScrollPane>
       <Text layoutX="8.0" layoutY="24.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Pilih beberapa gejala yang anda rasakan!" />
       <Text layoutX="519.0" layoutY="24.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Hasil" />
-      <TextArea fx:id="resultDisplay" editable="false" layoutX="519.0" layoutY="35.0" prefHeight="309.0" prefWidth="293.0" wrapText="true" />
+      <TextArea fx:id="resultDisplay" editable="false" layoutX="519.0" layoutY="35.0" prefHeight="246.0" prefWidth="293.0" wrapText="true" />
       <Button layoutX="670.0" layoutY="418.0" mnemonicParsing="false" onAction="#diagnoseDisease" prefHeight="39.0" prefWidth="141.0" text="Diagnosa" />
       <Button layoutX="519.0" layoutY="418.0" mnemonicParsing="false" onAction="#resetSymptom" prefHeight="39.0" prefWidth="141.0" text="Reset" />
-      <TextField fx:id="threshold" layoutX="578.0" layoutY="352.0" prefHeight="25.0" prefWidth="216.0" />
-      <Label layoutX="518.0" layoutY="356.0" text="Threshold" />
-      <Label layoutX="799.0" layoutY="356.0" text="\%" />
-      <RadioButton layoutX="376.0" layoutY="11.0" mnemonicParsing="false" text="Gastrousus">
+      <TextField fx:id="threshold" layoutX="589.0" layoutY="368.0" prefHeight="25.0" prefWidth="205.0" />
+      <Label layoutX="518.0" layoutY="372.0" text="Threshold" />
+      <Label layoutX="799.0" layoutY="372.0" text="\%" />
+      <RadioButton layoutX="718.0" layoutY="296.0" mnemonicParsing="false" text="Gastrousus">
          <toggleGroup>
             <ToggleGroup fx:id="diseaseGroup" />
          </toggleGroup>
       </RadioButton>
-      <RadioButton layoutX="247.0" layoutY="11.0" mnemonicParsing="false" selected="true" text="Infeksi/Non-infeksi" toggleGroup="$diseaseGroup" />
+      <RadioButton layoutX="589.0" layoutY="296.0" mnemonicParsing="false" selected="true" text="Infeksi/Non-infeksi" toggleGroup="$diseaseGroup" />
+      <RadioButton layoutX="590.0" layoutY="333.0" mnemonicParsing="false" selected="true" text="Weighted">
+         <toggleGroup>
+            <ToggleGroup fx:id="method" />
+         </toggleGroup></RadioButton>
+      <RadioButton layoutX="689.0" layoutY="334.0" mnemonicParsing="false" text="Rule-based" toggleGroup="$method" />
+      <Label layoutX="518.0" layoutY="296.0" text="Penyakit" />
+      <Label layoutX="518.0" layoutY="333.0" text="Metode" />
    </children>
 </AnchorPane>

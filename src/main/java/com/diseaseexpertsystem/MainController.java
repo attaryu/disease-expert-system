@@ -24,6 +24,9 @@ public class MainController {
   private ToggleGroup diseaseGroup;
 
   @FXML
+  private ToggleGroup method;
+
+  @FXML
   private VBox symptomContainer;
 
   @FXML
